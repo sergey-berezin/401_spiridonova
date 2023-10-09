@@ -1,4 +1,4 @@
-﻿namespace ONNXPackage
+namespace ONNXPackage
 {
     class Program
     {
@@ -12,6 +12,8 @@
 
             try
             {
+                network.CreateSession();
+
                 CheckArgs(args);
                 List<string> fileNames = args.ToList();
 
@@ -55,14 +57,14 @@
             foreach (var imageBox in task)
             {
                 imageBox.Image.SaveAsJpeg(fileName.Replace('.', '_') + "_" + imageBox.ImageFile);
-
+                
                 if (!File.Exists(csvFileName))
                     File.AppendAllLines(csvFileName, new List<string>() {
                             $"FileName,Class,X,Y,Width,Height" });
-
-                File.AppendAllLines(csvFileName, new List<string>() {
+                
+                File.AppendAllLines(csvFileName, new List<string>() { 
                     $"{fileName.Replace('.', '_') + '_' + imageBox.ImageFile}," +
-                    $"{imageBox.Object.Class}," +
+                    $"{imageBox.Object.Class}," + 
                     $"{imageBox.Object.XMin.ToString().Replace(',', '.')}," +
                     $"{imageBox.Object.YMin.ToString().Replace(',', '.')}," +
                     $"{(imageBox.Object.XMax - imageBox.Object.XMin).ToString().Replace(',', '.')}," +
