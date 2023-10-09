@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SixLabors.ImageSharp.Drawing.Processing;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.OnnxRuntime;
@@ -8,9 +8,9 @@ namespace ONNXPackage
 {
     public class Network
     {
-        public InferenceSession session;
-        
-        public Network()
+        public InferenceSession? session;
+
+        public void CreateSession()
         {
             if (!File.Exists("tinyyolov2-8.onnx"))
             {
@@ -42,7 +42,7 @@ namespace ONNXPackage
 
             if (trialNumber == 11)
             {
-                throw new Exception("Unable to dowload network!");
+                throw new Exception("Unable to download network!");
             }
         }
 
@@ -94,8 +94,15 @@ namespace ONNXPackage
                NamedOnnxValue.CreateFromTensor("image", input),
             };
 
+            if (session == null)
+                throw new Exception("Session is null!");
+
             // Вычисляем предсказание нейросетью
-            using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = session.Run(inputs);
+            IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results;
+            lock (session)
+            {
+                results = session.Run(inputs);
+            }
 
             ct.ThrowIfCancellationRequested();
 
