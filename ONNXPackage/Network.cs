@@ -68,7 +68,6 @@ namespace ONNXPackage
                 {
                     Size = new Size(TargetSize, TargetSize),
                     Mode = ResizeMode.Pad // Дополнить изображение до указанного размера с сохранением пропорций
-                    //PadColor = Color.White
                 });
             });
 
@@ -154,7 +153,7 @@ namespace ONNXPackage
 
             int cellSize = TargetSize / CellCount;
 
-            List<ObjectBox> objects = new();
+            List<ObjectBox> objects = new ();
 
             for (var row = 0; row < CellCount; row++)
                 for (var col = 0; col < CellCount; col++)
