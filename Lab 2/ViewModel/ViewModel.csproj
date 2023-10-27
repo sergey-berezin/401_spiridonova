@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ONNXPackage2" Version="1.0.0" />
+    <PackageReference Include="ONNXPackage" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
