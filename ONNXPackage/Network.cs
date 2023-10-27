@@ -18,8 +18,7 @@ namespace ONNXPackage
             }
             session = new InferenceSession("tinyyolov2-8.onnx");
         }
-
-        public void DownloadNetwork()
+        public static void DownloadNetwork()
         {
             string remoteUri = "https://storage.yandexcloud.net/dotnet4/tinyyolov2-8.onnx";
             string fileName = "tinyyolov2-8.onnx";
@@ -69,6 +68,7 @@ namespace ONNXPackage
                 {
                     Size = new Size(TargetSize, TargetSize),
                     Mode = ResizeMode.Pad // Дополнить изображение до указанного размера с сохранением пропорций
+                    //PadColor = Color.White
                 });
             });
 
@@ -208,28 +208,6 @@ namespace ONNXPackage
                 }
             }
 
-            void Annotate(Image<Rgb24> target, ObjectBox obj)
-            {
-                target.Mutate(ctx =>
-                {
-                    ctx.DrawPolygon(
-                        Pens.Solid(Color.Blue, 2),
-                        new PointF[] {
-                                new PointF((float)obj.XMin, (float)obj.YMin),
-                                new PointF((float)obj.XMin, (float)obj.YMax),
-                                new PointF((float)obj.XMax, (float)obj.YMax),
-                                new PointF((float)obj.XMax, (float)obj.YMin)
-                        });
-
-                    ctx.DrawText(
-                        $"{obj.Class}",
-                        SystemFonts.Families.First().CreateFont(16),
-                        Color.Blue,
-                        new PointF((float)obj.XMin, (float)obj.YMax));
-                });
-            }
-        
-
             var result = new List<ImageBox>();
 
             int objectNumber = 1;
@@ -240,14 +218,36 @@ namespace ONNXPackage
 
                 var resultFileName = $"detected_{obj.Class}" + $"{objectNumber}" + ".jpg";
 
-                ImageBox t = new (obj, final, resultFileName);
+                ImageBox t = new(obj, final, resultFileName);
                 result.Add(t);
                 objectNumber++;
 
             }
             return result;
         }
+
+        public static void Annotate(Image<Rgb24> target, ObjectBox obj)
+        {
+            target.Mutate(ctx =>
+            {
+                ctx.DrawPolygon(
+                    Pens.Solid(Color.Blue, 2),
+                    new PointF[] {
+                                new PointF((float)obj.XMin, (float)obj.YMin),
+                                new PointF((float)obj.XMin, (float)obj.YMax),
+                                new PointF((float)obj.XMax, (float)obj.YMax),
+                                new PointF((float)obj.XMax, (float)obj.YMin)
+                    });
+
+                ctx.DrawText(
+                    $"{obj.Class}",
+                    SystemFonts.Families.First().CreateFont(16),
+                    Color.Blue,
+                    new PointF((float)obj.XMin, (float)obj.YMax));
+            });
+        }
     }
+
     public record ObjectBox(double XMin, double YMin, double XMax, double YMax, double Confidence, string Class)
     {
         public double IoU(ObjectBox b2) =>
