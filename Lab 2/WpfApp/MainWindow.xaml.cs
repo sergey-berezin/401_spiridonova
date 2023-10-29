@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using ViewModel;
 
-namespace Lab2
+namespace WpfApp
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
