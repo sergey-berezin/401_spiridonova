@@ -1,9 +1,9 @@
-<Window x:Class="Lab2.MainWindow"
+<Window x:Class="WpfApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Lab2"
+        xmlns:local="clr-namespace:WpfApp"
         Title="MainWindow" Height="450" Width="800">
 
     <Window.Resources>
