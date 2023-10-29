@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ONNXPackage;
@@ -24,17 +25,32 @@ namespace ViewModel
         private readonly ICommand chooseFilesAndDetectObjectsCommand;
         public ICommand CancelDetectionCommand => cancelDetectionCommand;
         public ICommand ChooseFilesAndDetectObjectsCommand => chooseFilesAndDetectObjectsCommand;
-        public string ProcessStatus { get; set; } = "";
+
         private Task CreateSessionTask;
+        public string ProcessStatusMessage { get; set; } = "";
+        private int filesToProcessCount = 0;
+        private bool canDetect = true;
 
         public MainViewModel()
         {
             network = new Network();
             cts = new CancellationTokenSource();
-            CreateSessionTask = Task.Run(() => network.CreateSession(), cts.Token);
+            CreateSessionTask = Task.Run(() =>
+            {
+                try
+                {
+                    ProcessStatusMessage = "Creating session...";
+                    network.CreateSession();
+                    ProcessStatusMessage = "Session created!";
+                }
+                catch
+                {
+                    canDetect = false;
+                }
+            }, cts.Token);
 
             ChosenImages = new ObservableCollection<ImageInfo>();
-            
+
             cancelDetectionCommand = new RelayCommand(_ => CancelDetection());
 
             chooseFilesAndDetectObjectsCommand = new AsyncRelayCommand(async _ => ChooseFilesAndDetectObjects());
@@ -42,13 +58,19 @@ namespace ViewModel
 
         private void CancelDetection()
         {
-            cts.Cancel();
+            if (filesToProcessCount == 0)
+            {
+                MessageBox.Show("Images are not currently being processed!");
+            }
+            else
+            {
+                cts.Cancel();
+                ProcessStatusMessage = $"Processed images ({filesToProcessCount} canceled):";
+                RaisePropertyChanged(nameof(ProcessStatusMessage));
+            }
         }
         private async void ChooseFilesAndDetectObjects()
         {
-            ProcessStatus = "Processing...";
-            RaisePropertyChanged(nameof(ProcessStatus));
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
             openFileDialog.Filter = "JPG files (*.jpg)|*.jpg";
@@ -59,14 +81,33 @@ namespace ViewModel
 
                 await CreateSessionTask;
 
-                foreach (string filename in openFileDialog.FileNames)
+                cts = new CancellationTokenSource();
+
+                if (!canDetect)
                 {
-                    var task = DetectAsync(filename, cts);
-                    tasks.Add(task);
+                    ProcessStatusMessage = "Error!";
+                    RaisePropertyChanged(nameof(ProcessStatusMessage));
+                    MessageBox.Show("Unable to create session for image processing!");
+                    return;
+                }
+
+                ProcessStatusMessage = "Processing...";
+                RaisePropertyChanged(nameof(ProcessStatusMessage));
+
+                try
+                {
+                    filesToProcessCount = openFileDialog.FileNames.Length;
+                    foreach (string filename in openFileDialog.FileNames)
+                    {
+                        var task = DetectAsync(filename, cts);
+                        tasks.Add(task);
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    MessageBox.Show(ex.ToString());
                 }
             }
-            ProcessStatus = "Processed";
-            RaisePropertyChanged(nameof(ProcessStatus));
         }
 
         private async Task<List<ImageBox>> DetectAsync(string filePath,
@@ -80,8 +121,8 @@ namespace ViewModel
             {
                 x.Resize(new ResizeOptions
                 {
-                    Size = new Size(TargetSize, TargetSize),
-                    Mode = ResizeMode.Pad,
+                    Size = new SixLabors.ImageSharp.Size(TargetSize, TargetSize),
+                    Mode = SixLabors.ImageSharp.Processing.ResizeMode.Pad,
                     PadColor = Color.White
                 });
             });
@@ -95,8 +136,15 @@ namespace ViewModel
             string annotatedImagePath = Environment.CurrentDirectory + "/" + fileName + "_annotated.jpg";
             annotated.SaveAsJpeg(annotatedImagePath);
 
+            filesToProcessCount--;
             ChosenImages.Add(new ImageInfo(filePath, fileName, task.Count, annotatedImagePath));
-            
+
+            if (filesToProcessCount == 0)
+            {
+                ProcessStatusMessage = "Processed images:";
+                RaisePropertyChanged(nameof(ProcessStatusMessage));
+            }
+
             return task;
         }
     }
