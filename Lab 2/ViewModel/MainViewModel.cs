@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
@@ -58,7 +57,7 @@ namespace ViewModel
 
         private void CancelDetection()
         {
-            if (filesToProcessCount == 0)
+            if (filesToProcessCount <= 0)
             {
                 MessageBox.Show("Images are not currently being processed!");
             }
@@ -67,18 +66,24 @@ namespace ViewModel
                 cts.Cancel();
                 ProcessStatusMessage = $"Processed images ({filesToProcessCount} canceled):";
                 RaisePropertyChanged(nameof(ProcessStatusMessage));
+                filesToProcessCount = 0;
             }
         }
+        
         private async void ChooseFilesAndDetectObjects()
         {
+            if (filesToProcessCount > 0)
+            {
+                MessageBox.Show("Other files are currently being processed! Please wait...");
+                return;
+            }
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
             openFileDialog.Filter = "JPG files (*.jpg)|*.jpg";
 
             if (openFileDialog.ShowDialog() == true)
             {
-                List<Task> tasks = new();
-
                 await CreateSessionTask;
 
                 cts = new CancellationTokenSource();
@@ -100,7 +105,6 @@ namespace ViewModel
                     foreach (string filename in openFileDialog.FileNames)
                     {
                         var task = DetectAsync(filename, cts);
-                        tasks.Add(task);
                     }
                 }
                 catch (Exception ex) 
@@ -110,12 +114,14 @@ namespace ViewModel
             }
         }
 
-        private async Task<List<ImageBox>> DetectAsync(string filePath,
+        private async Task DetectAsync(string filePath,
             CancellationTokenSource cts)
         {
             var image = Image.Load<Rgb24>(filePath);
-            var task = await network.GetDetectedObjectsAsync(image, cts.Token);
 
+            var task = await network.GetDetectedObjectsAsync(image, cts.Token);
+            filesToProcessCount--;
+            
             const int TargetSize = 416;
             var annotated = image.Clone(x =>
             {
@@ -136,7 +142,6 @@ namespace ViewModel
             string annotatedImagePath = Environment.CurrentDirectory + "/" + fileName + "_annotated.jpg";
             annotated.SaveAsJpeg(annotatedImagePath);
 
-            filesToProcessCount--;
             ChosenImages.Add(new ImageInfo(filePath, fileName, task.Count, annotatedImagePath));
 
             if (filesToProcessCount == 0)
@@ -144,10 +149,9 @@ namespace ViewModel
                 ProcessStatusMessage = "Processed images:";
                 RaisePropertyChanged(nameof(ProcessStatusMessage));
             }
-
-            return task;
         }
     }
+    
     public record ImageInfo(string FilePath, string FileName,
         int DetectedObjectsCount, string AnnotatedImagePath) { }
 }
