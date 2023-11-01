@@ -69,7 +69,6 @@ namespace ViewModel
                 filesToProcessCount = 0;
             }
         }
-        
         private async void ChooseFilesAndDetectObjects()
         {
             if (filesToProcessCount > 0)
@@ -104,7 +103,7 @@ namespace ViewModel
                     filesToProcessCount = openFileDialog.FileNames.Length;
                     foreach (string filename in openFileDialog.FileNames)
                     {
-                        var task = DetectAsync(filename, cts);
+                        _ = DetectAsync(filename, cts);
                     }
                 }
                 catch (Exception ex) 
@@ -135,7 +134,7 @@ namespace ViewModel
 
             foreach (var imageBox in task)
             {
-                Network.Annotate(annotated, imageBox.Object);
+                ObjectBox.Annotate(annotated, imageBox.Object);
             }
 
             string fileName = Path.GetFileNameWithoutExtension(filePath);
@@ -151,7 +150,6 @@ namespace ViewModel
             }
         }
     }
-    
     public record ImageInfo(string FilePath, string FileName,
         int DetectedObjectsCount, string AnnotatedImagePath) { }
 }
