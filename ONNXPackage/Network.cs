@@ -68,6 +68,7 @@ namespace ONNXPackage
                 {
                     Size = new Size(TargetSize, TargetSize),
                     Mode = ResizeMode.Pad // Дополнить изображение до указанного размера с сохранением пропорций
+                    //PadColor = Color.White
                 });
             });
 
@@ -213,24 +214,30 @@ namespace ONNXPackage
             foreach (var obj in objects)
             {
                 var final = resized.Clone();
-                Annotate(final, obj);
+                ObjectBox.Annotate(final, obj);
 
                 var resultFileName = $"detected_{obj.Class}" + $"{objectNumber}" + ".jpg";
 
-                ImageBox t = new(obj, final, resultFileName);
-                result.Add(t);
+                ImageBox imageBox = new(obj, final, resultFileName);
+                result.Add(imageBox);
                 objectNumber++;
-
             }
             return result;
         }
+    }
+
+    public record ObjectBox(double XMin, double YMin, double XMax, double YMax, double Confidence, string Class)
+    {
+        public double IoU(ObjectBox b2) =>
+            (Math.Min(XMax, b2.XMax) - Math.Max(XMin, b2.XMin)) * (Math.Min(YMax, b2.YMax) - Math.Max(YMin, b2.YMin)) /
+            ((Math.Max(XMax, b2.XMax) - Math.Min(XMin, b2.XMin)) * (Math.Max(YMax, b2.YMax) - Math.Min(YMin, b2.YMin)));
 
         public static void Annotate(Image<Rgb24> target, ObjectBox obj)
         {
             target.Mutate(ctx =>
             {
                 ctx.DrawPolygon(
-                    Pens.Solid(Color.Blue, 2),
+                    Pens.Solid(Color.DeepPink, 2),
                     new PointF[] {
                                 new PointF((float)obj.XMin, (float)obj.YMin),
                                 new PointF((float)obj.XMin, (float)obj.YMax),
@@ -241,17 +248,10 @@ namespace ONNXPackage
                 ctx.DrawText(
                     $"{obj.Class}",
                     SystemFonts.Families.First().CreateFont(16),
-                    Color.Blue,
+                    Color.DeepPink,
                     new PointF((float)obj.XMin, (float)obj.YMax));
             });
         }
-    }
-
-    public record ObjectBox(double XMin, double YMin, double XMax, double YMax, double Confidence, string Class)
-    {
-        public double IoU(ObjectBox b2) =>
-            (Math.Min(XMax, b2.XMax) - Math.Max(XMin, b2.XMin)) * (Math.Min(YMax, b2.YMax) - Math.Max(YMin, b2.YMin)) /
-            ((Math.Max(XMax, b2.XMax) - Math.Min(XMin, b2.XMin)) * (Math.Max(YMax, b2.YMax) - Math.Min(YMin, b2.YMin)));
     }
 
     public record ImageBox(ObjectBox Object, Image<Rgb24> Image, string ImageFile) { }
