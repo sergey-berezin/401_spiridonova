@@ -1,10 +1,13 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using ONNXPackage;
 using SixLabors.ImageSharp;
@@ -29,6 +32,7 @@ namespace ViewModel
         public string ProcessStatusMessage { get; set; } = "";
         private int filesToProcessCount = 0;
         private bool canDetect = true;
+
 
         public MainViewModel()
         {
@@ -128,7 +132,7 @@ namespace ViewModel
                 {
                     Size = new SixLabors.ImageSharp.Size(TargetSize, TargetSize),
                     Mode = SixLabors.ImageSharp.Processing.ResizeMode.Pad,
-                    PadColor = Color.White
+                    PadColor = SixLabors.ImageSharp.Color.White
                 });
             });
 
@@ -137,11 +141,17 @@ namespace ViewModel
                 ObjectBox.Annotate(annotated, imageBox.Object);
             }
 
-            string fileName = Path.GetFileNameWithoutExtension(filePath);
-            string annotatedImagePath = Environment.CurrentDirectory + "/" + fileName + "_annotated.jpg";
-            annotated.SaveAsJpeg(annotatedImagePath);
+            byte[] pixels = new byte[annotated.Width * annotated.Height * Unsafe.SizeOf<Rgb24>()];
+            annotated.CopyPixelDataTo(pixels);
 
-            ChosenImages.Add(new ImageInfo(filePath, fileName, task.Count, annotatedImagePath));
+            BitmapSource annotatedImage = BitmapSource.Create(annotated.Width, annotated.Height, 96, 96,
+                PixelFormats.Rgb24, null, pixels, 3 * annotated.Width);
+
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+
+            BitmapSource bitmapImage = new BitmapImage(new Uri(filePath));
+
+            ChosenImages.Add(new ImageInfo(fileName, bitmapImage, task.Count, annotatedImage));
 
             if (filesToProcessCount == 0)
             {
@@ -150,6 +160,6 @@ namespace ViewModel
             }
         }
     }
-    public record ImageInfo(string FilePath, string FileName,
-        int DetectedObjectsCount, string AnnotatedImagePath) { }
+    public record ImageInfo(string FileName, BitmapSource Image,
+        int DetectedObjectsCount, BitmapSource AnnotatedImage) { }
 }
