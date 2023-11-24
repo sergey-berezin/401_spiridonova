@@ -25,12 +25,12 @@
                             <ColumnDefinition Width="58"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding Path=FileName}" Grid.Column="0" HorizontalAlignment="Left"/>
-                        <Image MaxWidth="50" MaxHeight="50" Source="{Binding Path=FilePath}" Grid.Column="1" HorizontalAlignment="Center"/>
+                        <Image MaxWidth="50" MaxHeight="50" Source="{Binding Path=Image}" Grid.Column="1" HorizontalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Image Source="{Binding ElementName=filesList, Path=SelectedItem.AnnotatedImagePath}" HorizontalAlignment="Left" Height="416" Margin="360,0,25,0" VerticalAlignment="Top" Width="416"/>
+        <Image Source="{Binding ElementName=filesList, Path=SelectedItem.AnnotatedImage}" HorizontalAlignment="Left" Height="416" Margin="360,0,25,0" VerticalAlignment="Top" Width="416"/>
         <Button x:Name="ButtonCancel" Content="Interrupt" Command="{Binding CancelDetectionCommand}" HorizontalAlignment="Left" Height="21" Margin="205,9,0,0" VerticalAlignment="Top" Width="115" Foreground="Black"/>
         <Button x:Name="ButtonChooseFiles" Content="Choose files" Command="{Binding ChooseFilesAndDetectObjectsCommand}" HorizontalAlignment="Left" Height="21" Margin="25,9,0,0" VerticalAlignment="Top" Width="170"/>
         <TextBlock HorizontalAlignment="Left" Height="20" Margin="25,44,0,0" TextWrapping="Wrap" Text="{Binding ProcessStatusMessage}" VerticalAlignment="Top" Width="295"/>
