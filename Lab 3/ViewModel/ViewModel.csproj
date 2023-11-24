@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ONNXPackage2\ONNXPackage2.csproj" />
+    <ProjectReference Include="..\..\ONNXPackage2\ONNXPackage.csproj" />
     <ProjectReference Include="..\DataStorageTools\DataStorageTools.csproj" />
   </ItemGroup>
 
