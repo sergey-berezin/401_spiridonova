@@ -58,30 +58,4 @@ namespace Server.Controllers
             }
         }
     }
-
-    /*
-    [ApiController]
-    [Route("[controller]")]
-    public class Controller : ControllerBase
-    {
-        [HttpGet]
-        public string Get()
-        {
-            return String.Concat("Hello, world!");
-        }
-    }
-
-    [ApiController]
-    //[Route("file-upload")]
-    [Route("[controller]")]
-    public class TodoItemsController : ControllerBase
-    {
-        [HttpPost]
-        public void OnPostUpload(IFormFile uploadedFile)
-        {
-            Console.WriteLine("POST дошел до бэка!");
-            //Console.WriteLine(uploadedFile);
-        }
-    }
-    */
 }
