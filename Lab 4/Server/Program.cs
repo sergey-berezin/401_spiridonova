@@ -6,16 +6,11 @@ builder.Services.AddSwaggerDocument();
 
 var app = builder.Build();
 
-//app.UseHttpsRedirection();
-
 app.UseRouting();
-
-//app.UseAuthorization();
 
 app.UseOpenApi();
 app.UseSwaggerUi3();
 
-//app.UseCors(b => b.AllowAnyOrigin().AllowAnyMethod());
 app.UseCors(builder =>
 {
     builder
