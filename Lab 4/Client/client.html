@@ -31,6 +31,7 @@
                     let reader = new FileReader();
                     reader.onload = async function (e) {
                         DisplayImage(e.target.result);
+                        document.getElementById("input_file").setAttribute('disabled', 'True');
                         try {
                             let json = await PostRequest(e.target.result.replace('data:image/jpeg;base64,', ''));
                             DisplayDetectedObjects(json);
@@ -38,6 +39,7 @@
                         catch (ex) {
                             document.getElementById("error_message").innerText = ex;
                         }
+                        document.getElementById("input_file").removeAttribute('disabled');
                     }
                     reader.readAsDataURL(file);
                 }
