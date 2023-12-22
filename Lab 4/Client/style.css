@@ -1,0 +1,62 @@
+﻿h1 {
+    font-family: Arial;
+    font-size: 40px;
+}
+
+#layer1, #layer2 {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+}
+
+ul {
+    list-style-type: none;
+    margin-top: 40px;
+    margin-left: 25px;
+}
+
+li {
+    width: 200px;
+    margin: 2px;
+    padding: 8px;
+    background: #6600CC;
+    border-radius: 3px;
+    color: #fff;
+    font-size: 16px;
+}
+
+.input_file {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+}
+
+.input_file_button {
+    width: 100%;
+    max-width: 250px;
+    height: 60px;
+    background: #1bbc9b;
+    color: #fff;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0 auto;
+}
+
+.input_file_button_text {
+    display: block;
+    margin-left: auto;
+    margin-right: 45px;
+}
+
+.input_file_button_icon {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 35%;
+    filter: invert(1);
+}

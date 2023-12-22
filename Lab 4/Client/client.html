@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<head>
+    <title>Object detection</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div align="center">
+        <h1>Обнаружение объектов на изображении</h1>
+        <input type="file" id="input_file" class="input_file" accept="image/jpeg">
+        <label for="input_file" class="input_file_button">
+            <span class="input_file_button_icon"><img src="icon.png" width="35"></span>
+            <span class="input_file_button_text">Выберите файл</span>
+        </label>
+        <div id="error_message"></div>
+    </div>
+    <canvas id="layer1" width="700" height="700"></canvas>
+    <canvas id="layer2" width="700" height="700"></canvas>
+
+
+    <script type="text/javascript">
+        document.getElementById("input_file").addEventListener('change',
+            function () {
+                const ul = document.querySelector('ul')
+                if (ul != null) {
+                    const parent = ul.parentNode
+                    parent.removeChild(ul)
+                }
+
+                let file = this.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = async function (e) {
+                        DisplayImage(e.target.result);
+                        document.getElementById("input_file").setAttribute('disabled', 'True');
+                        try {
+                            let json = await PostRequest(e.target.result.replace('data:image/jpeg;base64,', ''));
+                            DisplayDetectedObjects(json);
+                        }
+                        catch (ex) {
+                            document.getElementById("error_message").innerText = ex;
+                        }
+                        document.getElementById("input_file").removeAttribute('disabled');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+
+        function DisplayImage(source) {
+
+            let canvas = document.getElementById("layer2");
+            let context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            canvas = document.getElementById("layer1");
+            context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            let img = new Image();
+            img.onload = function () {
+                let ratio = img.width / img.height;
+
+                if (img.width > img.height) {
+                    let w = canvas.width;
+                    let h = canvas.height / ratio;
+                    context.drawImage(img, 0, (canvas.height - h) / 2, w, h);
+                }
+                else {
+                    let w = canvas.width * ratio;
+                    let h = canvas.height;
+                    context.drawImage(img, (canvas.width - w) / 2, 0, w, h);
+                }
+            };
+
+            img.src = source;
+        }
+
+
+        async function PostRequest(base64string) {
+            const url = 'http://localhost:5053/image/process';
+            const data = JSON.stringify(base64string);
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: data,
+            };
+
+            const response = await fetch(url, options);
+            return response.json();
+        }
+
+
+        function DisplayDetectedObjects(objects) {
+            let canvas = document.getElementById("layer2");
+            let context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            let ul = document.createElement('ul');
+
+            let i;
+            for (i = 0; i < objects.length; i++) {
+                let w_ratio = canvas.width / 416;
+                let h_ratio = canvas.height / 416;
+                let x = objects[i].xMin * w_ratio;
+                let y = objects[i].yMin * h_ratio;
+                let w = objects[i].xMax * w_ratio - x;
+                let h = objects[i].yMax * h_ratio - y;
+
+                canvas = document.getElementById("layer1");
+                context = canvas.getContext("2d");
+                context.strokeStyle = "#6600CC";
+                context.lineWidth = 3;
+                context.strokeRect(x, y, w, h);
+
+                let li = document.createElement('li');
+                li.innerText = objects[i].class + ": \t " + objects[i].confidence;
+
+                li.onclick = function () {
+                    let canvas = document.getElementById("layer2");
+                    let context = canvas.getContext("2d");
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.strokeStyle = "#1bbc9b";
+                    context.lineWidth = 3;
+                    context.shadowColor = "#1bbc9b";
+                    context.shadowBlur = 10;
+                    context.strokeRect(x, y, w, h);
+                }
+
+                li.onmouseover = function () {
+                    li.style.backgroundColor = "#1bbc9b";
+                }
+
+                li.onmouseout = function () {
+                    li.style.backgroundColor = "#6600CC";
+                }
+
+                ul.append(li);
+            }
+
+            document.body.append(ul);
+        }
+    </script>
+</body>
